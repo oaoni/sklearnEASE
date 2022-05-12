@@ -7,8 +7,8 @@ class EASE(Wrapper):
         """Constructor""" # Initialize wrapper
         Wrapper.__init__(self,algorithm=algorithm, model=model)
 
-    def _fit(self, train_data, X_side, l2 = 5e2, alpha=1, normalize_model=False):
-        model = self.compute_model(X=train_data, side=X_side, l2 = l2, alpha=alpha, normalize_model=normalize_model, algorithm=self.algorithm, model=self.model)
+    def _fit(self, train_data, X_side, l2, l2_side, alpha, normalize_model):
+        model = self.compute_model(X=train_data, side=X_side, l2=l2, l2_side=l2_side, alpha=alpha, normalize_model=normalize_model, algorithm=self.algorithm, model=self.model)
         return model
 
     @staticmethod
@@ -46,7 +46,7 @@ class EASE(Wrapper):
             model = model*observed_values_std/predicted_values_std
         return model
 
-    def compute_model(self, X, side, l2 = 5e2, alpha=1, normalize_model=False, algorithm='ease', model='collective'):
+    def compute_model(self, X, side=None, l2 = 5e2, l2_side = 5e2, alpha=1, normalize_model=False, algorithm='ease', model='collective'):
 
         if model == 'collective':
             Z = pd.concat([X, alpha*side])
@@ -54,7 +54,10 @@ class EASE(Wrapper):
 
         elif model == 'additive':
             B = self.compute_algorithm(X, l2 = l2, algorithm=algorithm, normalize_model=normalize_model)
-            B_side = self.compute_algorithm(side, l2 = l2, algorithm=algorithm, normalize_model=normalize_model)
+            B_side = self.compute_algorithm(side, l2 = l2_side, algorithm=algorithm, normalize_model=normalize_model)
             computation = alpha*B + (1 - alpha)*B_side
+
+        elif model == 'noside':
+            computation = self.compute_algorithm(X, l2 = l2, algorithm=algorithm, normalize_model=normalize_model)
 
         return computation
