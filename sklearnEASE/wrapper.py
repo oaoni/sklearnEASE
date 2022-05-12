@@ -17,15 +17,15 @@ class Wrapper(BaseEstimator):
         self.algorithm = algorithm
         self.model = model
 
-    def fit(self, X_train, X_side=None, l2 = 5e2, l2_side = 5e2, alpha=1, normalize_model=False):
+    def fit(self, X_train, side=None, l2 = 5e2, l2_side = 5e2, alpha=1, normalize_model=False):
 
-        self.B = self._fit(X_train, X_side, l2, l2_side, alpha, normalize_model)
+        self.B = self._fit(X_train, side, l2, l2_side, alpha, normalize_model)
         return self
 
     def transform(self, X_test):
 
         Xhat = X_test @ self.B
-        
+
         return Xhat + Xhat.T
 
     def score(self, X, X_test, S_test, name):
