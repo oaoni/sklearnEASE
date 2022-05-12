@@ -24,7 +24,9 @@ class Wrapper(BaseEstimator):
 
     def transform(self, X_test):
 
-        return X_test @ self.B
+        Xhat = X_test @ self.B
+        
+        return Xhat + Xhat.T
 
     def score(self, X, X_test, S_test, name):
         ''''Produce training, testing, and validation scoring metrics (rmse, corr(pearson,), frobenius, relative error)'''
