@@ -5,6 +5,11 @@ from scipy.linalg import svd
 from sklearn.metrics.pairwise import pairwise_kernels
 from scipy.spatial.distance import cdist
 
+def add_bias(M,val=1):
+
+    ones = pd.DataFrame(np.ones(M.shape[0]),index=M.index,columns=['bias'])*val
+    return pd.concat([pd.concat([M,ones],axis=1),ones.T]).fillna(0)
+
 def corr_metric(predicted, measured):
     corr = np.corrcoef(predicted, measured)
 

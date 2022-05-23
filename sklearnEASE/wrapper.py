@@ -7,22 +7,31 @@ from sklearn.base import BaseEstimator
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.sparse import coo_matrix
 
-from sklearnEASE.metrics import corr_metric
+from sklearnEASE.metrics import corr_metric, add_bias
 
 class Wrapper(BaseEstimator):
     """Scikit learn wrapper for matrix completion models."""
 
-    def __init__(self,algorithm,model):
+    def __init__(self,algorithm,model,add_bias):
 
         self.algorithm = algorithm
         self.model = model
+        self.add_bias = add_bias
 
     def fit(self, X_train, side=None, l2 = 5e2, l2_side = 5e2, alpha=1, normalize_model=False):
+
+        if self.add_bias:
+            X_train = add_bias(X_train)
+            if side:
+                side = add_bias(side)
 
         self.B = self._fit(X_train, side, l2, l2_side, alpha, normalize_model)
         return self
 
     def transform(self, X_test):
+
+        if self.add_bias:
+            X_train = add_bias(X_test)
 
         Xhat = X_test @ self.B
 
@@ -30,6 +39,11 @@ class Wrapper(BaseEstimator):
 
     def score(self, X, X_test, S_test, name):
         ''''Produce training, testing, and validation scoring metrics (rmse, corr(pearson,), frobenius, relative error)'''
+
+        if self.add_bias:
+            X = add_bias(X)
+            X_test = add_bias(X_test)
+            S_test = add_bias(S_test,val=0)
 
         bool_mask = S_test == 1
         Xhat = self.transform(X_test)
