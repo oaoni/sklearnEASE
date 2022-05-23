@@ -32,7 +32,7 @@ class Wrapper(BaseEstimator):
     def transform(self, X_test):
 
         if self.add_bias:
-            X_train = add_bias(X_test)
+            X_test = add_bias(X_test)
 
         Xhat = X_test @ self.B
 
