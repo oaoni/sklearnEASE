@@ -43,7 +43,7 @@ class Wrapper(BaseEstimator):
 
         if self.add_bias:
             X = add_bias(X)
-            X_test = add_bias(X_test)
+            # X_test = add_bias(X_test)
             S_test = add_bias(S_test,val=0)
 
         bool_mask = S_test == 1
