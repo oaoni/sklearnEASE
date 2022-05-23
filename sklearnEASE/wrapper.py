@@ -22,11 +22,7 @@ class Wrapper(BaseEstimator):
 
         if self.add_bias:
             X_train = add_bias(X_train)
-<<<<<<< HEAD
             if isinstance(side,pd.DataFrame):
-=======
-            if side != None:
->>>>>>> dc7ff030d6a42183ca291eb2d67e1f03a08b479e
                 side = add_bias(side)
 
         self.B = self._fit(X_train, side, l2, l2_side, alpha, normalize_model)
