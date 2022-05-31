@@ -60,10 +60,10 @@ class Wrapper(BaseEstimator):
         spearman = predicted.corr(measured, method='spearman')
         pearson = predicted.corr(measured, method='pearson')
 
-        reciprocal_r = reciprocal_rank(Xhat, X_true, 15)[0]
-        mean_precision = average_precision(Xhat, X_true, 15)[0]
-        mean_recall = average_recall(Xhat, X_true, 15)[0]
-        ndcg = normalized_gain(Xhat, X_true, 15)[0]
+        reciprocal_r = reciprocal_rank(Xhat, X_true, 50)[0]
+        mean_precision = average_precision(Xhat, X_true, 50)[0]
+        mean_recall = average_recall(Xhat, X_true, 50)[0]
+        ndcg = normalized_gain(Xhat, X_true, 50)[0]
 
         return {'{}_frob'.format(name):frob, '{}_rel_frob'.format(name):rel_frob, '{}_rmse'.format(name):rmse,
         '{}_rel_rmse'.format(name):rel_rmse, '{}_spearman'.format(name):spearman, '{}_pearson'.format(name):pearson,
