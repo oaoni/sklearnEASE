@@ -9,6 +9,7 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.sparse import coo_matrix
 
 from sklearnEASE.metrics import corr_metric, add_bias
+from sklearnBPMF.core.metrics import reciprocal_rank, average_precision, average_recall, discounted_gain, normalized_gain
 
 class Wrapper(BaseEstimator):
     """Scikit learn wrapper for matrix completion models."""
@@ -38,31 +39,36 @@ class Wrapper(BaseEstimator):
 
         return Xhat + Xhat.T
 
-    def score(self, X, X_test, S_test, name):
+    def score(self, X, Xhat, S_test, name):
         ''''Produce training, testing, and validation scoring metrics (rmse, corr(pearson,), frobenius, relative error)'''
 
         if self.add_bias:
-            X = add_bias(X)
-            # X_test = add_bias(X_test)
-            S_test = add_bias(S_test,val=0)
+            Xhat = Xhat.iloc[:-1,:-1]
 
         bool_mask = S_test == 1
-        Xhat = self.transform(X_test)
+        X_true = X * S_test
 
         predicted = Xhat[bool_mask].stack()
         measured = X[bool_mask].stack()
 
         error = predicted - measured
 
-        frob = np.linalg.norm(Xhat - X, 'fro')
-        rel_frob = frob/(np.linalg.norm(X, 'fro'))
+        frob = np.linalg.norm(predicted - measured, 'fro')
+        rel_frob = frob/(np.linalg.norm(measured, 'fro'))
         rmse = np.sqrt(np.mean((error**2)))
         rel_rmse = rmse/(np.sqrt(np.mean((measured**2))))
         spearman = predicted.corr(measured, method='spearman')
         pearson = predicted.corr(measured, method='pearson')
 
+        reciprocal_r = reciprocal_rank(Xhat, X_true, 15)[0]
+        mean_precision = average_precision(Xhat, X_true, 15)[0]
+        mean_recall = average_recall(Xhat, X_true, 15)[0]
+        ndcg = normalized_gain(Xhat, X_true, 15)[0]
+
         return {'{}_frob'.format(name):frob, '{}_rel_frob'.format(name):rel_frob, '{}_rmse'.format(name):rmse,
-        '{}_rel_rmse'.format(name):rel_rmse, '{}_spearman'.format(name):spearman, '{}_pearson'.format(name):pearson}
+        '{}_rel_rmse'.format(name):rel_rmse, '{}_spearman'.format(name):spearman, '{}_pearson'.format(name):pearson,
+        '{}_reciprocal_r'.format(name):reciprocal_r, '{}_mean_precision'.format(name):mean_precision,
+        '{}_mean_recall'.format(name):mean_recall, '{}_ndcg'.format(name):ndcg}
 
 
     def _makePlots(self, train_dict, X_train, X_test, saveplot=True, complete_matrix=None):
