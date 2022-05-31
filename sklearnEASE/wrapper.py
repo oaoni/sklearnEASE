@@ -53,8 +53,8 @@ class Wrapper(BaseEstimator):
 
         error = predicted - measured
 
-        frob = np.linalg.norm(predicted - measured, 'fro')
-        rel_frob = frob/(np.linalg.norm(measured, 'fro'))
+        frob = np.linalg.norm(Xhat - X, 'fro')
+        rel_frob = frob/(np.linalg.norm(X, 'fro'))
         rmse = np.sqrt(np.mean((error**2)))
         rel_rmse = rmse/(np.sqrt(np.mean((measured**2))))
         spearman = predicted.corr(measured, method='spearman')
