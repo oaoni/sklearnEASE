@@ -8,6 +8,7 @@ from sklearn.base import BaseEstimator
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.sparse import coo_matrix
 import copy
+import warnings
 
 from sklearnBPMF.data.utils import verify_ndarray, verify_pdframe, add_bias
 from sklearnBPMF.core.metrics import reciprocal_rank, average_precision, average_recall, discounted_gain, normalized_gain, score_completion
@@ -117,6 +118,7 @@ class Wrapper(BaseEstimator):
 
     def score(self, X, Xhat, S_test, name):
         ''''Produce training, testing, and validation scoring metrics (rmse, corr(pearson,), frobenius, relative error)'''
+        warnings.warn('method deprecated')
 
         if self.add_bias:
             Xhat = Xhat.iloc[:-1,:-1]
