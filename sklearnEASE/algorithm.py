@@ -38,7 +38,7 @@ class EASE(Wrapper):
         elif algorithm == 'edlae':
             model = self.compute_EDLAE(X, l2=l2)
 
-        model = pd.DataFrame(model)
+        model = model
 
         if normalize_model:
             observed_values_std = X.stack().std()
