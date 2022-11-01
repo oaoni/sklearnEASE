@@ -15,15 +15,20 @@ from sklearnBPMF.core.metrics import reciprocal_rank, average_precision, average
 class Wrapper(BaseEstimator):
     """Scikit learn wrapper for matrix completion models."""
 
-    def __init__(self,algorithm,model,add_bias,k_metrics=True,k=20):
+    def __init__(self,algorithm,model,add_bias,k_metrics=True,k=20,
+                 l2=5e2,l2_side=5e2,alpha=1,normalize_model=False):
 
         self.algorithm = algorithm
         self.model = model
         self.add_bias = add_bias
         self.k_metrics = k_metrics
         self.k = k
+        self.l2 = l2
+        self.l2_side = l2_side
+        self.alpha = alpha
+        self.normalize = normalize
 
-    def fit(self,X_train,X_side=None,X_test=None,y=None,M=None,l2=5e2,l2_side=5e2,alpha=1,normalize_model=False):
+    def fit(self,X_train,X_side=None,X_test=None,y=None,M=None):
 
         #Store training and evaluation data
         self.X_train = X_train
@@ -37,12 +42,10 @@ class Wrapper(BaseEstimator):
 
         X,side = self.format_data(X_train,y=y,side=X_side)
 
-        self.B = self._fit(X, side, l2, l2_side, alpha, normalize_model)
+        self.B = self._fit(X, side, self.l2, self.l2_side, self.alpha, self.normalize_model)
 
         # Store performance metrics
         self.store_metrics(self.X_train)
-
-        return self
 
     def transform(self, X_test):
 
@@ -54,8 +57,6 @@ class Wrapper(BaseEstimator):
             X_pred = (X_test @ self.B)[:,1:]
         else:
             X_pred = X_test @ self.B
-
-        print('shape of the X_test: {}, shape of the B matrix: {}'.format(X_test.shape,self.B.shape))
 
         Xhat = X_pred + X_pred.T
 
