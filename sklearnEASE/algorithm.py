@@ -3,9 +3,11 @@ import pandas as pd
 import numpy as np
 
 class EASE(Wrapper):
-    def __init__(self, algorithm = 'ease', model = 'collective', add_bias=False):
+    def __init__(self, algorithm = 'ease', model = 'collective', add_bias=False,
+                 l2=5e2,l2_side=5e2,alpha=1,normalize_model=False):
         """Constructor""" # Initialize wrapper
-        Wrapper.__init__(self,algorithm=algorithm, model=model, add_bias=add_bias)
+        Wrapper.__init__(self,algorithm=algorithm, model=model, add_bias=add_bias,
+                         l2=l2,l2_side=l2_side,alpha=alpha,normalize_model=normalize_model)
 
     def _fit(self, train_data, X_side, l2, l2_side, alpha, normalize_model):
         model = self.compute_model(X=train_data, side=X_side, l2=l2, l2_side=l2_side, alpha=alpha, normalize_model=normalize_model, algorithm=self.algorithm, model=self.model)
