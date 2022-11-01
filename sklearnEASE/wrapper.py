@@ -51,11 +51,15 @@ class Wrapper(BaseEstimator):
         if self.add_bias:
             X_test = add_bias(X_test)
 
+            X_pred = (X_test @ self.B)[:,1:]
+        else:
+            X_pred = X_test @ self.B
+
         print('shape of the X_test: {}, shape of the B matrix: {}'.format(X_test.shape,self.B.shape))
 
-        Xhat = X_test @ self.B
+        Xhat = X_pred + X_pred.T
 
-        return Xhat + Xhat.T
+        return pd.DataFrame(Xhat)
 
     def format_data(self,X,y=None,side=None):
 
