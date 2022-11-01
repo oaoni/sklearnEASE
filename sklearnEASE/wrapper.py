@@ -7,7 +7,7 @@ import seaborn as sns
 from sklearn.base import BaseEstimator
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.sparse import coo_matrix
-from copy
+import copy
 
 from sklearnEASE.metrics import corr_metric, add_bias
 from sklearnBPMF.data.utils import verify_ndarray, verify_pdframe
