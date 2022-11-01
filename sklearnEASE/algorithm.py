@@ -34,11 +34,11 @@ class EASE(Wrapper):
     def compute_algorithm(self, X, l2=5e2, algorithm='ease', normalize_model=False):
 
         if algorithm == 'ease':
-            model = self.compute_EASE(X.values, l2=l2)
+            model = self.compute_EASE(X, l2=l2)
         elif algorithm == 'edlae':
-            model = self.compute_EDLAE(X.values, l2=l2)
+            model = self.compute_EDLAE(X, l2=l2)
 
-        model = pd.DataFrame(model, index=X.columns, columns=X.columns)
+        model = pd.DataFrame(model)
 
         if normalize_model:
             observed_values_std = X.stack().std()
