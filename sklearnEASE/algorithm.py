@@ -49,7 +49,7 @@ class EASE(Wrapper):
     def compute_model(self, X, side=None, l2 = 5e2, l2_side = 5e2, alpha=1, normalize_model=False, algorithm='ease', model='collective'):
 
         if model == 'collective':
-            Z = pd.concat([X, alpha*side])
+            Z = np.concatenate([X, alpha*side])
             computation = self.compute_algorithm(Z, l2 = l2, algorithm=algorithm, normalize_model=normalize_model)
 
         elif model == 'additive':

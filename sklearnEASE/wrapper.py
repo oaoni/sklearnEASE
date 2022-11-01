@@ -9,8 +9,7 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.sparse import coo_matrix
 import copy
 
-from sklearnEASE.metrics import corr_metric, add_bias
-from sklearnBPMF.data.utils import verify_ndarray, verify_pdframe
+from sklearnBPMF.data.utils import verify_ndarray, verify_pdframe, add_bias
 from sklearnBPMF.core.metrics import reciprocal_rank, average_precision, average_recall, discounted_gain, normalized_gain, score_completion
 
 class Wrapper(BaseEstimator):
@@ -47,10 +46,12 @@ class Wrapper(BaseEstimator):
 
     def transform(self, X_test):
 
-        X_test = verify_pdframe(X_test)
+        X_test = verify_ndarray(X_test)
 
         if self.add_bias:
             X_test = add_bias(X_test)
+
+        print('shape of the X_test: {}, shape of the B matrix: {}'.format(X_test.shape,self.B.shape))
 
         Xhat = X_test @ self.B
 
@@ -62,12 +63,12 @@ class Wrapper(BaseEstimator):
             y = copy.copy(X)
             self.y = y
 
-        X,y,side = verify_pdframe(X,y,side)
+        X,y,side = verify_ndarray(X,y,side)
 
         # Format bias
         if self.add_bias:
             X = add_bias(X)
-            if isinstance(side,pd.DataFrame):
+            if isinstance(side,np.ndarray):
                 side = add_bias(side)
 
         return X,side
