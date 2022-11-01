@@ -7,30 +7,47 @@ import seaborn as sns
 from sklearn.base import BaseEstimator
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.sparse import coo_matrix
+from copy
 
 from sklearnEASE.metrics import corr_metric, add_bias
-from sklearnBPMF.core.metrics import reciprocal_rank, average_precision, average_recall, discounted_gain, normalized_gain
+from sklearnBPMF.data.utils import verify_ndarray, verify_pdframe
+from sklearnBPMF.core.metrics import reciprocal_rank, average_precision, average_recall, discounted_gain, normalized_gain, score_completion
 
 class Wrapper(BaseEstimator):
     """Scikit learn wrapper for matrix completion models."""
 
-    def __init__(self,algorithm,model,add_bias):
+    def __init__(self,algorithm,model,add_bias,k_metrics=True,k=20):
 
         self.algorithm = algorithm
         self.model = model
         self.add_bias = add_bias
+        self.k_metrics = k_metrics
+        self.k = k
 
-    def fit(self, X_train, side=None, l2 = 5e2, l2_side = 5e2, alpha=1, normalize_model=False):
+    def fit(self,X_train,X_side=None,X_test=None,y=None,M=None,l2=5e2,l2_side=5e2,alpha=1,normalize_model=False):
 
-        if self.add_bias:
-            X_train = add_bias(X_train)
-            if isinstance(side,pd.DataFrame):
-                side = add_bias(side)
+        #Store training and evaluation data
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y = y
+        self.M = M
 
-        self.B = self._fit(X_train, side, l2, l2_side, alpha, normalize_model)
+        # Produce masks
+        self.S_train = verify_pdframe((X_train != 0)*1)
+        self.S_test = verify_pdframe((X_test != 0)*1)
+
+        X,side = self.format_data(X_train,y=y,side=X_side)
+
+        self.B = self._fit(X, side, l2, l2_side, alpha, normalize_model)
+
+        # Store performance metrics
+        self.store_metrics(self.X_train)
+
         return self
 
     def transform(self, X_test):
+
+        X_test = verify_pdframe(X_test)
 
         if self.add_bias:
             X_test = add_bias(X_test)
@@ -38,6 +55,59 @@ class Wrapper(BaseEstimator):
         Xhat = X_test @ self.B
 
         return Xhat + Xhat.T
+
+    def format_data(self,X,y=None,side=None):
+
+        if y is None:
+            y = copy.copy(X)
+            self.y = y
+
+        X,y,side = verify_pdframe(X,y,side)
+
+        # Format bias
+        if self.add_bias:
+            X = add_bias(X)
+            if isinstance(side,pd.DataFrame):
+                side = add_bias(side)
+
+        return X,side
+
+    def predict(self,S='test'):
+
+        if S == 'test':
+            S = self.S_test
+        elif S == 'train':
+            S = self.S_train
+
+        pred = (self.Xhat * S.replace(0,np.nan).values).stack()
+        avg = list(pred.values.astype(np.float32))
+        coord = list(pred.index.values)
+
+        return avg, coord
+
+    def store_metrics(self,X):
+
+        self.Xhat = self.transform(X)
+
+        test_scores = score_completion(self.M,self.Xhat,self.S_test,'test',k_metrics=self.k_metrics,k=self.k)
+        train_scores = score_completion(self.M,self.Xhat,self.S_train,'train',k_metrics=self.k_metrics,k=self.k)
+        cond_number = np.linalg.cond(verify_ndarray(X) + np.eye(X.shape[0]))
+        cond_number_mask = np.linalg.cond(self.S_train + np.eye(X.shape[0]))
+
+        pred_avg, pred_coord = self.predict(S='test')
+        train_avg, train_coord = self.predict(S='train')
+
+        #Assign current training metrics
+        self.train_scores = train_scores
+        self.test_scores = test_scores
+        self.train_dict = dict(pred_avg = pred_avg,
+                               pred_coord = pred_coord,
+                               train_avg = train_avg,
+                               train_coord = train_coord,
+                               cond_number = cond_number,
+                               cond_number_mask = cond_number_mask,
+                               **test_scores,
+                               **train_scores)
 
     def score(self, X, Xhat, S_test, name):
         ''''Produce training, testing, and validation scoring metrics (rmse, corr(pearson,), frobenius, relative error)'''
