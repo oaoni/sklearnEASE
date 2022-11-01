@@ -26,7 +26,7 @@ class Wrapper(BaseEstimator):
         self.l2 = l2
         self.l2_side = l2_side
         self.alpha = alpha
-        self.normalize = normalize
+        self.normalize_model = normalize_model
 
     def fit(self,X_train,X_side=None,X_test=None,y=None,M=None):
 
